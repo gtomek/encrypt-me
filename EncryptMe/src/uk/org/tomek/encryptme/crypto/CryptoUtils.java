@@ -17,7 +17,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 
-import android.content.Context;
 import android.util.Log;
 
 /**
@@ -106,7 +105,7 @@ public class CryptoUtils {
 	private Cipher getCipher() {
 		Cipher cipher = null;
 		try {
-			cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		} catch (NoSuchAlgorithmException e) {
 			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
 			e.printStackTrace();
