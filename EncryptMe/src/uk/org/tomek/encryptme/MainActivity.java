@@ -1,5 +1,6 @@
 package uk.org.tomek.encryptme;
 
+import uk.org.tomek.encryptme.crypto.PRNGFixes;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
@@ -10,6 +11,8 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		// apply PRNG fixes
+		PRNGFixes.apply();
 	}
 
 	@Override

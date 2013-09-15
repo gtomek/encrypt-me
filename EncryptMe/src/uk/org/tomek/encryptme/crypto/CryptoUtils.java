@@ -3,6 +3,7 @@ package uk.org.tomek.encryptme.crypto;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
@@ -31,6 +32,8 @@ public class CryptoUtils {
 	
 	private static final String TAG = CryptoUtils.class.getSimpleName();
 	private static final String IV_BYTES = "!dsf345fdssd5432"; 
+	private static final String CIPHER_PROVIDER = "BC";
+	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";
 	private final SecretKey mKey;
 	
 
@@ -43,6 +46,7 @@ public class CryptoUtils {
 	}
 
 	public String encryptData(String clearText) {
+		Log.d(TAG, "encryptData called");
 		Cipher cipher = getCipher();
 		String outputString = null;
 		
@@ -71,6 +75,7 @@ public class CryptoUtils {
 	}
 	
 	public String decryptData(String encryptedText) {
+		Log.d(TAG, "decryptData called");
 		Cipher cipher = getCipher();
 		String outputString = null;
 		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES.getBytes());
@@ -105,11 +110,14 @@ public class CryptoUtils {
 	private Cipher getCipher() {
 		Cipher cipher = null;
 		try {
-			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			cipher = Cipher.getInstance(CIPHER_ALGO, CIPHER_PROVIDER);
 		} catch (NoSuchAlgorithmException e) {
 			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
+			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
+			e.printStackTrace();
+		} catch (NoSuchProviderException e) {
 			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}

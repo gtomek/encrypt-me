@@ -14,9 +14,11 @@ public class CryptUtilsTests extends AndroidTestCase {
 
 	public void testEncryptData() {
 		CryptoUtils cryptoUtils = CryptoUtils.newInstance();
+		Log.d(TAG, String.format("Input data:%s", INPUT_DATA));
 		String encryptedData = cryptoUtils.encryptData(INPUT_DATA);
-		Log.d(TAG, encryptedData);
+		Log.d(TAG, String.format("Encrypted data:%s", encryptedData));
 		String decryptedData = cryptoUtils.decryptData(encryptedData);
+		Log.d(TAG, String.format("Decrypted data:%s", decryptedData));
 		assertEquals(INPUT_DATA, decryptedData);
 	}
 
