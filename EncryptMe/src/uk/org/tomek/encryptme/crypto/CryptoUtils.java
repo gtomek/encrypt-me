@@ -24,27 +24,26 @@ import android.text.TextUtils;
 import android.util.Log;
 
 /**
- * Class used to encrypt/decrypt some String content on Android.
- * Based on 
+ * Class used to encrypt/decrypt some String content on Android. Based on
  * http://android-developers.blogspot.co.uk/2013/02/using-cryptography-to-store-credentials.html
  * 
  * @author Tomek Giszczak
- *
+ * 
  */
 public class CryptoUtils {
-	
+
 	private static final String TAG = CryptoUtils.class.getSimpleName();
 	private static final String CIPHER_PROVIDER = "BC";
 	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";
-	// TODO: taking only zeros as an example, please change it...
-	private static final byte[] IV_BYTES = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	private static final byte[] IV_BYTES = { (byte) 0xf8, (byte) 0x9f, (byte) 0x0a, (byte) 0x2b,
+			(byte) 0x9b, (byte) 0x5b, (byte) 0x11, (byte) 0xad, (byte) 0x61, (byte) 0x19,
+			(byte) 0xe9, (byte) 0xb6, (byte) 0x9f, (byte) 0xda, (byte) 0xf1, (byte) 0x3f };
 	private final SecretKey mKey;
-	
 
 	private CryptoUtils() {
 		mKey = generateKey();
 	}
-	
+
 	public static CryptoUtils newInstance() {
 		return new CryptoUtils();
 	}
@@ -55,10 +54,10 @@ public class CryptoUtils {
 	 * @param inputBytes
 	 * @return
 	 */
-	public byte[] encryptData(byte[] inputBytes){
+	public byte[] encryptData(byte[] inputBytes) {
 		Log.d(TAG, "encryptData called");
 		Cipher cipher = getCipher();
-		
+
 		if (cipher != null && mKey != null) {
 			try {
 				IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
@@ -81,7 +80,7 @@ public class CryptoUtils {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Encryption method taking and returning {@link String} as input.
 	 * 
@@ -95,7 +94,7 @@ public class CryptoUtils {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Decrypts data.
 	 * 
@@ -106,7 +105,7 @@ public class CryptoUtils {
 		Log.d(TAG, "decryptData called");
 		Cipher cipher = getCipher();
 		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
-		
+
 		if (cipher != null && mKey != null) {
 			try {
 				cipher.init(Cipher.DECRYPT_MODE, mKey, ivSpec);
@@ -128,7 +127,7 @@ public class CryptoUtils {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Decryption method taking and returning {@link String} as input.
 	 * 
@@ -142,9 +141,10 @@ public class CryptoUtils {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Returns Cipher instance.
+	 * 
 	 * @return
 	 */
 	private Cipher getCipher() {
@@ -163,19 +163,20 @@ public class CryptoUtils {
 		}
 		return cipher;
 	}
-	
+
 	/**
 	 * Generates secret key without PIN code.
+	 * 
 	 * @return a key or null
 	 */
 	public static SecretKey generateKey() {
-	    // Generate a 256-bit key
-	    final int outputKeyLength = 256;
+		// Generate a 256-bit key
+		final int outputKeyLength = 256;
 
-	    SecureRandom secureRandom = new SecureRandom();
-	    // Do *not* seed secureRandom! Automatically seeded from system entropy.
-	    KeyGenerator keyGenerator;
-	    SecretKey key = null;
+		SecureRandom secureRandom = new SecureRandom();
+		// Do *not* seed secureRandom! Automatically seeded from system entropy.
+		KeyGenerator keyGenerator;
+		SecretKey key = null;
 		try {
 			keyGenerator = KeyGenerator.getInstance("AES");
 			keyGenerator.init(outputKeyLength, secureRandom);
@@ -185,30 +186,32 @@ public class CryptoUtils {
 			e.printStackTrace();
 		}
 		Log.d(TAG, String.format("Using the key:%s", HexStringHelper.hexEncode(key.getEncoded())));
-	    return key;
+		return key;
 	}
-	
+
 	/**
 	 * Generates secret code with PIN code used as an input parameter.
+	 * 
 	 * @param passphraseOrPin
 	 * @param salt
 	 * @return
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 */
-	public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-	    // Number of PBKDF2 hardening rounds to use. Larger values increase
-	    // computation time. You should select a value that causes computation
-	    // to take >100ms.
-	    final int iterations = 1000; 
+	public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt)
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
+		// Number of PBKDF2 hardening rounds to use. Larger values increase
+		// computation time. You should select a value that causes computation
+		// to take >100ms.
+		final int iterations = 1000;
 
-	    // Generate a 256-bit key
-	    final int outputKeyLength = 256;
+		// Generate a 256-bit key
+		final int outputKeyLength = 256;
 
-	    SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-	    KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
-	    SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
-	    return secretKey;
+		SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+		KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
+		SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+		return secretKey;
 	}
-	
+
 }
