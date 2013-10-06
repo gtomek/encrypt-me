@@ -1,4 +1,4 @@
-package uk.org.tomek.encryptme.files;
+package uk.org.tomek.encryptme.helpers;
 
 /**
  * Class contains methods helping to save files in the filesystem.

@@ -18,6 +18,9 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 
+import uk.org.tomek.encryptme.helpers.HexStringHelper;
+
+import android.text.TextUtils;
 import android.util.Log;
 
 /**
@@ -31,9 +34,10 @@ import android.util.Log;
 public class CryptoUtils {
 	
 	private static final String TAG = CryptoUtils.class.getSimpleName();
-	private static final String IV_BYTES = "!dsf345fdssd5432"; 
 	private static final String CIPHER_PROVIDER = "BC";
 	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";
+	// TODO: taking only zeros as an example, please change it...
+	private static final byte[] IV_BYTES = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	private final SecretKey mKey;
 	
 
@@ -45,18 +49,22 @@ public class CryptoUtils {
 		return new CryptoUtils();
 	}
 
-	public String encryptData(String clearText) {
+	/**
+	 * Encrypts data.
+	 * 
+	 * @param inputBytes
+	 * @return
+	 */
+	public byte[] encryptData(byte[] inputBytes){
 		Log.d(TAG, "encryptData called");
 		Cipher cipher = getCipher();
-		String outputString = null;
 		
 		if (cipher != null && mKey != null) {
 			try {
-				IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES.getBytes());
+				IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
 				cipher.init(Cipher.ENCRYPT_MODE, mKey, ivSpec);
-				byte[] inputBytes = clearText.getBytes();
 				byte[] outputBytes = cipher.doFinal(inputBytes);
-				outputString = new String(outputBytes);
+				return outputBytes;
 			} catch (InvalidKeyException e) {
 				Log.d(TAG, "Impossible encrypt," + e.getClass().getSimpleName());
 				e.printStackTrace();
@@ -71,21 +79,39 @@ public class CryptoUtils {
 				e.printStackTrace();
 			}
 		}
-		return outputString;
+		return null;
 	}
 	
-	public String decryptData(String encryptedText) {
+	/**
+	 * Encryption method taking and returning {@link String} as input.
+	 * 
+	 * @param inputText
+	 * @return
+	 */
+	public String encryptData(String inputText) {
+		if (!TextUtils.isEmpty(inputText)) {
+			byte[] encryptedData = encryptData(inputText.getBytes());
+			return new String(encryptedData);
+		}
+		return null;
+	}
+	
+	/**
+	 * Decrypts data.
+	 * 
+	 * @param encryptedText
+	 * @return
+	 */
+	public byte[] decryptData(byte[] inputBytes) {
 		Log.d(TAG, "decryptData called");
 		Cipher cipher = getCipher();
-		String outputString = null;
-		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES.getBytes());
+		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
 		
 		if (cipher != null && mKey != null) {
 			try {
 				cipher.init(Cipher.DECRYPT_MODE, mKey, ivSpec);
-				byte[] inputBytes = encryptedText.getBytes();
 				byte[] outputBytes = cipher.doFinal(inputBytes);
-				outputString = new String(outputBytes);
+				return outputBytes;
 			} catch (InvalidKeyException e) {
 				Log.d(TAG, "Impossible decrypt," + e.getClass().getSimpleName());
 				e.printStackTrace();
@@ -100,7 +126,21 @@ public class CryptoUtils {
 				e.printStackTrace();
 			}
 		}
-		return outputString;
+		return null;
+	}
+	
+	/**
+	 * Decryption method taking and returning {@link String} as input.
+	 * 
+	 * @param encryptedInputText
+	 * @return
+	 */
+	public String decryptData(String encryptedInputText) {
+		if (!TextUtils.isEmpty(encryptedInputText)) {
+			byte[] decryptedData = decryptData(encryptedInputText.getBytes());
+			return new String(decryptedData);
+		}
+		return null;
 	}
 	
 	/**
@@ -144,6 +184,7 @@ public class CryptoUtils {
 			Log.d(TAG, "Impossible to create encryption key" + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
+		Log.d(TAG, String.format("Using the key:%s", HexStringHelper.hexEncode(key.getEncoded())));
 	    return key;
 	}
 	
