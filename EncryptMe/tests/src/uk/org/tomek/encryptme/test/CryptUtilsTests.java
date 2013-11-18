@@ -1,3 +1,4 @@
+package uk.org.tomek.encryptme.test;
 import uk.org.tomek.encryptme.crypto.CryptoUtils;
 import android.test.AndroidTestCase;
 import android.util.Log;

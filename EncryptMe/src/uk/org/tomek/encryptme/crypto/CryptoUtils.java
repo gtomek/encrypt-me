@@ -39,12 +39,20 @@ public class CryptoUtils {
 			(byte) 0x9b, (byte) 0x5b, (byte) 0x11, (byte) 0xad, (byte) 0x61, (byte) 0x19,
 			(byte) 0xe9, (byte) 0xb6, (byte) 0x9f, (byte) 0xda, (byte) 0xf1, (byte) 0x3f };
 	private final SecretKey mKey;
+	private String mCipherAlgo = CIPHER_ALGO;
 
 	private CryptoUtils() {
 		mKey = generateKey();
 	}
 
+	/**
+	 * Applies PRNGFixes and creates new instance of {@link CryptoUtils}.
+	 * 
+	 * @return {@link CryptoUtils}
+	 */
 	public static CryptoUtils newInstance() {
+		// apply PRNG fixes
+		PRNGFixes.apply();
 		return new CryptoUtils();
 	}
 
@@ -102,7 +110,7 @@ public class CryptoUtils {
 	 * @return
 	 */
 	public byte[] decryptData(byte[] inputBytes) {
-		Log.d(TAG, "decryptData called");
+		Log.d(TAG, String.format("decryptData called with:%s", HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
 		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
 
@@ -214,4 +222,18 @@ public class CryptoUtils {
 		return secretKey;
 	}
 
+	/**
+	 * Returns crypto key. 
+	 */
+	public SecretKey getKey() {
+		return mKey;
+	}
+	
+	/**
+	 * Returns currently used ciphering algo.
+	 * @return
+	 */
+	public String getCipherAlgo() {
+		return mCipherAlgo;
+	}
 }

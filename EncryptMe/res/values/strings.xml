@@ -3,6 +3,7 @@
 
     <string name="app_name">EncryptMe</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="encryption_type_title">Encryption type:</string>
+    <string name="key_description_title">Used key:</string>
 
 </resources>
