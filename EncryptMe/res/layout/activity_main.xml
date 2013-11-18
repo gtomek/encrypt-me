@@ -17,13 +17,36 @@
         android:layout_toRightOf="@id/encryption_type_title" />
 
     <TextView
-        android:id="@+id/key_desc_title"
+        android:id="@+id/key_value_title"
         android:layout_below="@id/encryption_type_title"
         android:text="@string/key_description_title" />
 
     <TextView
         android:id="@+id/key_value"
         android:layout_below="@id/encryption_type_title"
-        android:layout_toRightOf="@id/key_desc_title" />
+        android:layout_toRightOf="@id/key_value_title" />
+
+    <TextView
+        android:id="@+id/input_text_title"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/key_value"
+        android:text="@string/input_text_title" />
+
+    <EditText
+        android:id="@+id/input_text"
+        android:layout_alignTop="@id/input_text_title"
+        android:layout_toRightOf="@id/input_text_title"
+        android:inputType="text" />
+
+    <TextView
+        android:id="@+id/output_text_title"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/input_text"
+        android:text="@string/output_text_title" />
+
+    <TextView
+        android:id="@+id/output_text"
+        android:layout_alignTop="@id/output_text_title"
+        android:layout_toRightOf="@id/output_text_title" />
 
 </RelativeLayout>
