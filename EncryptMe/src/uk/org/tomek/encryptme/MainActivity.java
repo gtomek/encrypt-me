@@ -5,17 +5,25 @@ import uk.org.tomek.encryptme.presenters.MainActivityPresenter;
 import uk.org.tomek.encryptme.views.MainScreenView;
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 /**
  * Main application activity.
  */
-public final class MainActivity extends Activity implements MainScreenView {
+public final class MainActivity extends Activity implements MainScreenView{
 	
+	private static final String TAG = "MainActivity";
 	private final MainActivityPresenter mPresenter;
 	private TextView mEncryptionTypeTv;
 	private TextView mKeyValueTv;
+	private EditText mInputTextFiled;
+	private TextView mOutputTextField;
 	
 	public MainActivity() {
 		this(MainActivityPresenter.newInstance(CryptoUtils.newInstance()));
@@ -37,6 +45,30 @@ public final class MainActivity extends Activity implements MainScreenView {
 		// set view in Presenter
 		mPresenter.setView(this);
 		mPresenter.present();
+		
+		// add action to input text field (pressing Enter should trigger encryption)
+		mOutputTextField = (TextView) findViewById(R.id.output_text);
+		mInputTextFiled = (EditText) findViewById(R.id.input_text);
+		mInputTextFiled.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				boolean handeled = false;
+				Log.d(TAG, String.format("onEditorAction called, actionId:%d, event:%d", actionId, 
+						event.getAction()));
+				
+				if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.KEYCODE_UNKNOWN) {
+					String inputText = mInputTextFiled.getText().toString();
+					Log.d(TAG, String.format("Input data:%s", inputText));
+					CryptoUtils cryptoUtils = CryptoUtils.newInstance();
+					String encryptedData = cryptoUtils.encryptData(inputText);
+					Log.d(TAG, String.format("Output data:%s", encryptedData));
+					mOutputTextField.setText(encryptedData);
+					handeled = true;
+				}
+				return handeled;
+			}
+		});
 	}
 
 	@Override
@@ -56,5 +88,7 @@ public final class MainActivity extends Activity implements MainScreenView {
 	public void showKeyContent(String key) {
 		mKeyValueTv.setText(key);
 	}
+	
+
 
 }

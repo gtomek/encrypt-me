@@ -63,7 +63,7 @@ public class CryptoUtils {
 	 * @return
 	 */
 	public byte[] encryptData(byte[] inputBytes) {
-		Log.d(TAG, "encryptData called");
+		Log.d(TAG, String.format("encryptData called with size:%d, data:%s", inputBytes.length, HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
 
 		if (cipher != null && mKey != null) {
@@ -110,12 +110,13 @@ public class CryptoUtils {
 	 * @return
 	 */
 	public byte[] decryptData(byte[] inputBytes) {
-		Log.d(TAG, String.format("decryptData called with:%s", HexStringHelper.hexEncode(inputBytes)));
+		Log.d(TAG, String.format("decryptData called with size:%d, data:%s", inputBytes.length, HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
 		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
 
 		if (cipher != null && mKey != null) {
 			try {
+//				cipher.init(Cipher.DECRYPT_MODE, mKey);
 				cipher.init(Cipher.DECRYPT_MODE, mKey, ivSpec);
 				byte[] outputBytes = cipher.doFinal(inputBytes);
 				return outputBytes;
