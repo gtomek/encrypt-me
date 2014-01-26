@@ -4,19 +4,13 @@ import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 
 import uk.org.tomek.encryptme.helpers.HexStringHelper;
 import android.annotation.TargetApi;
@@ -32,21 +26,21 @@ import android.util.Log;
  * 
  */
 public class CryptoUtils {
+	public static final String UNICODE_FORMAT = "UTF-8";
+	public static final Charset DEFAULT_CHARSET = Charset.forName(UNICODE_FORMAT);
 
 	private static final String TAG = CryptoUtils.class.getSimpleName();
-	private static final String UNICODE_FORMAT = "UTF-8";
-	private static final Charset DEFAULT_CHARSET = Charset.forName(UNICODE_FORMAT);
 //	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";
 	private static final String CIPHER_ALGO = "PBEWITHMD5AND256BITAES-CBC-OPENSSL"; 
 	private static final byte[] IV_BYTES = { (byte) 0xf8, (byte) 0x9f, (byte) 0x0a, (byte) 0x2b,
 			(byte) 0x9b, (byte) 0x5b, (byte) 0x11, (byte) 0xad, (byte) 0x61, (byte) 0x19,
 			(byte) 0xe9, (byte) 0xb6, (byte) 0x9f, (byte) 0xda, (byte) 0xf1, (byte) 0x3f };
 	private static final IvParameterSpec IV_PARAMS_SPEC = new IvParameterSpec(IV_BYTES);
-	private final SecretKey mKey;
+	private final KeyFactory mKeyFactory;
 	private Cipher sCipher;
 
-	private CryptoUtils() {
-		mKey = generateKey();
+	private CryptoUtils(KeyFactory keyFactory) {
+		mKeyFactory = keyFactory;
 	}
 
 	/**
@@ -54,10 +48,10 @@ public class CryptoUtils {
 	 * 
 	 * @return {@link CryptoUtils}
 	 */
-	public static CryptoUtils newInstance() {
+	public static CryptoUtils newInstance(KeyFactory keyFactory) {
 		// apply PRNG fixes
 		PRNGFixes.apply();
-		return new CryptoUtils();
+		return new CryptoUtils(keyFactory);
 	}
 
 	/**
@@ -71,12 +65,16 @@ public class CryptoUtils {
 				HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
 
-		if (cipher != null && mKey != null) {
+		if (cipher != null && mKeyFactory != null) {
+			
 			try {
-				Log.d(TAG, String.format("Using the key size:%d, key:%s", mKey.getEncoded().length, 
-						HexStringHelper.hexEncode(mKey.getEncoded())));
-				cipher.init(Cipher.ENCRYPT_MODE, mKey, IV_PARAMS_SPEC);
+				SecretKey keyNoPin = mKeyFactory.getKeyNoPin();
+				Log.d(TAG, String.format("Using the key size:%d, key:%s", keyNoPin.getEncoded().length, 
+						HexStringHelper.hexEncode(keyNoPin.getEncoded())));
+				cipher.init(Cipher.ENCRYPT_MODE, keyNoPin, IV_PARAMS_SPEC);
 				byte[] outputBytes = cipher.doFinal(inputBytes);
+				Log.d(TAG, String.format("Encrypted data:%s",  
+						HexStringHelper.hexEncode(outputBytes)));
 				return outputBytes;
 			} catch (InvalidKeyException e) {
 				Log.d(TAG, "Impossible encrypt," + e.getClass().getSimpleName());
@@ -102,10 +100,10 @@ public class CryptoUtils {
 	 * @return
 	 */
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
-	public String encryptData(String inputText) {
+	public byte[] encryptData(String inputText) {
 		if (!TextUtils.isEmpty(inputText)) {
 			byte[] encryptedData = encryptData(inputText.getBytes(DEFAULT_CHARSET));
-			return new String(encryptedData);
+			return encryptedData;
 		}
 		return null;
 	}
@@ -120,11 +118,12 @@ public class CryptoUtils {
 		Log.d(TAG, String.format("decryptData called with size:%d, data:%s", inputBytes.length, HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
 
-		if (cipher != null && mKey != null) {
+		if (cipher != null && mKeyFactory != null) {
 			try {
-				Log.d(TAG, String.format("Using the key size:%d, key:%s", mKey.getEncoded().length, 
-						HexStringHelper.hexEncode(mKey.getEncoded())));
-				cipher.init(Cipher.DECRYPT_MODE, mKey, IV_PARAMS_SPEC);
+				SecretKey keyNoPin = mKeyFactory.getKeyNoPin();
+				Log.d(TAG, String.format("Using the key size:%d, key:%s", keyNoPin.getEncoded().length, 
+						HexStringHelper.hexEncode(keyNoPin.getEncoded())));
+				cipher.init(Cipher.DECRYPT_MODE, keyNoPin, IV_PARAMS_SPEC);
 				byte[] outputBytes = cipher.doFinal(inputBytes);
 				return outputBytes;
 			} catch (InvalidKeyException e) {
@@ -140,25 +139,6 @@ public class CryptoUtils {
 				Log.d(TAG, "Impossible decrypt," + e.getClass().getSimpleName());
 				e.printStackTrace();
 			}
-		}
-		return null;
-	}
-
-	/**
-	 * Decryption method taking and returning {@link String} as input.
-	 * 
-	 * @param encryptedInputText
-	 * @return
-	 */
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
-	public String decryptData(String encryptedInputText) {
-		if (!TextUtils.isEmpty(encryptedInputText)) {
-			byte[] decryptedData = decryptData(encryptedInputText.getBytes(DEFAULT_CHARSET));
-			if (decryptedData != null) {
-				return new String(decryptedData);
-			}
-		} else {
-			Log.e(TAG,"Cannot decrypt an empty encryptedInputText!");
 		}
 		return null;
 	}
@@ -185,60 +165,13 @@ public class CryptoUtils {
 		return sCipher;
 	}
 
-	/**
-	 * Generates secret key without PIN code.
-	 * 
-	 * @return a key or null
-	 */
-	public static SecretKey generateKey() {
-		// Generate a 256-bit key
-		final int outputKeyLength = 256;
-
-		SecureRandom secureRandom = new SecureRandom();
-		// Do *not* seed secureRandom! Automatically seeded from system entropy.
-		KeyGenerator keyGenerator;
-		SecretKey key = null;
-		try {
-			keyGenerator = KeyGenerator.getInstance("AES");
-			keyGenerator.init(outputKeyLength, secureRandom);
-			key = keyGenerator.generateKey();
-		} catch (NoSuchAlgorithmException e) {
-			Log.d(TAG, "Impossible to create encryption key" + e.getClass().getSimpleName());
-			e.printStackTrace();
-		}
-		return key;
-	}
-
-	/**
-	 * Generates secret code with PIN code used as an input parameter.
-	 * 
-	 * @param passphraseOrPin
-	 * @param salt
-	 * @return
-	 * @throws NoSuchAlgorithmException
-	 * @throws InvalidKeySpecException
-	 */
-	public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt)
-			throws NoSuchAlgorithmException, InvalidKeySpecException {
-		// Number of PBKDF2 hardening rounds to use. Larger values increase
-		// computation time. You should select a value that causes computation
-		// to take >100ms.
-		final int iterations = 1000;
-
-		// Generate a 256-bit key
-		final int outputKeyLength = 256;
-
-		SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-		KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
-		SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
-		return secretKey;
-	}
+	
 
 	/**
 	 * Returns crypto key. 
 	 */
 	public SecretKey getKey() {
-		return mKey;
+		return mKeyFactory.getKeyNoPin();
 	}
 	
 	/**

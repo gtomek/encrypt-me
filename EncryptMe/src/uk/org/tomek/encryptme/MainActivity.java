@@ -1,6 +1,7 @@
 package uk.org.tomek.encryptme;
 
 import uk.org.tomek.encryptme.crypto.CryptoUtils;
+import uk.org.tomek.encryptme.crypto.KeyFactory;
 import uk.org.tomek.encryptme.helpers.HexStringHelper;
 import uk.org.tomek.encryptme.presenters.MainActivityPresenter;
 import uk.org.tomek.encryptme.views.MainScreenView;
@@ -21,17 +22,16 @@ public final class MainActivity extends Activity implements MainScreenView{
 	
 	private static final String TAG = "MainActivity";
 	private final MainActivityPresenter mPresenter;
+	private final KeyFactory mKeyFactory;
 	private TextView mEncryptionTypeTv;
 	private TextView mKeyValueTv;
 	private EditText mInputTextFiled;
 	private TextView mOutputTextField;
 	
 	public MainActivity() {
-		this(MainActivityPresenter.newInstance(CryptoUtils.newInstance()));
-	}
-
-	public MainActivity(MainActivityPresenter mainActivityPresenter) {
-		mPresenter = mainActivityPresenter;
+		mKeyFactory = KeyFactory.newInstance();
+		mPresenter = MainActivityPresenter.newInstance(CryptoUtils.newInstance(mKeyFactory));
+//		this(MainActivityPresenter.newInstance(CryptoUtils.newInstance(mKeyFactory)));
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public final class MainActivity extends Activity implements MainScreenView{
 		setContentView(R.layout.activity_main);
 		
 		// create crypto utils instance
-		final CryptoUtils cryptoUtils = CryptoUtils.newInstance();
+		final CryptoUtils cryptoUtils = CryptoUtils.newInstance(mKeyFactory);
 		
 		//get views 
 		mEncryptionTypeTv = (TextView) findViewById(R.id.encryption_type);
@@ -63,8 +63,8 @@ public final class MainActivity extends Activity implements MainScreenView{
 					String inputText = mInputTextFiled.getText().toString();
 					Log.d(TAG, String.format("Input data:%s", inputText));
 					
-					String encryptedData = cryptoUtils.encryptData(inputText);
-					String hexEncodedOutput = HexStringHelper.hexEncode(encryptedData.getBytes());
+					byte[] encryptedData = cryptoUtils.encryptData(inputText);
+					String hexEncodedOutput = HexStringHelper.hexEncode(encryptedData);
 					Log.d(TAG, String.format("Output data:%s", hexEncodedOutput));
 					mOutputTextField.setText(hexEncodedOutput);
 					handeled = true;
