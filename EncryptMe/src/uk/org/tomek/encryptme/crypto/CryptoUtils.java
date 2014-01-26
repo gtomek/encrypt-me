@@ -1,9 +1,9 @@
 package uk.org.tomek.encryptme.crypto;
 
+import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
@@ -19,7 +19,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 
 import uk.org.tomek.encryptme.helpers.HexStringHelper;
-
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -33,13 +34,16 @@ import android.util.Log;
 public class CryptoUtils {
 
 	private static final String TAG = CryptoUtils.class.getSimpleName();
-	private static final String CIPHER_PROVIDER = "BC";
-	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";
+	private static final String UNICODE_FORMAT = "UTF-8";
+	private static final Charset DEFAULT_CHARSET = Charset.forName(UNICODE_FORMAT);
+//	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";
+	private static final String CIPHER_ALGO = "PBEWITHMD5AND256BITAES-CBC-OPENSSL"; 
 	private static final byte[] IV_BYTES = { (byte) 0xf8, (byte) 0x9f, (byte) 0x0a, (byte) 0x2b,
 			(byte) 0x9b, (byte) 0x5b, (byte) 0x11, (byte) 0xad, (byte) 0x61, (byte) 0x19,
 			(byte) 0xe9, (byte) 0xb6, (byte) 0x9f, (byte) 0xda, (byte) 0xf1, (byte) 0x3f };
+	private static final IvParameterSpec IV_PARAMS_SPEC = new IvParameterSpec(IV_BYTES);
 	private final SecretKey mKey;
-	private String mCipherAlgo = CIPHER_ALGO;
+	private Cipher sCipher;
 
 	private CryptoUtils() {
 		mKey = generateKey();
@@ -63,13 +67,15 @@ public class CryptoUtils {
 	 * @return
 	 */
 	public byte[] encryptData(byte[] inputBytes) {
-		Log.d(TAG, String.format("encryptData called with size:%d, data:%s", inputBytes.length, HexStringHelper.hexEncode(inputBytes)));
+		Log.d(TAG, String.format("encryptData called with size:%d, data:%s", inputBytes.length, 
+				HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
 
 		if (cipher != null && mKey != null) {
 			try {
-				IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
-				cipher.init(Cipher.ENCRYPT_MODE, mKey, ivSpec);
+				Log.d(TAG, String.format("Using the key size:%d, key:%s", mKey.getEncoded().length, 
+						HexStringHelper.hexEncode(mKey.getEncoded())));
+				cipher.init(Cipher.ENCRYPT_MODE, mKey, IV_PARAMS_SPEC);
 				byte[] outputBytes = cipher.doFinal(inputBytes);
 				return outputBytes;
 			} catch (InvalidKeyException e) {
@@ -84,7 +90,7 @@ public class CryptoUtils {
 			} catch (InvalidAlgorithmParameterException e) {
 				Log.d(TAG, "Impossible encrypt," + e.getClass().getSimpleName());
 				e.printStackTrace();
-			}
+			} 
 		}
 		return null;
 	}
@@ -95,9 +101,10 @@ public class CryptoUtils {
 	 * @param inputText
 	 * @return
 	 */
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public String encryptData(String inputText) {
 		if (!TextUtils.isEmpty(inputText)) {
-			byte[] encryptedData = encryptData(inputText.getBytes());
+			byte[] encryptedData = encryptData(inputText.getBytes(DEFAULT_CHARSET));
 			return new String(encryptedData);
 		}
 		return null;
@@ -112,12 +119,12 @@ public class CryptoUtils {
 	public byte[] decryptData(byte[] inputBytes) {
 		Log.d(TAG, String.format("decryptData called with size:%d, data:%s", inputBytes.length, HexStringHelper.hexEncode(inputBytes)));
 		Cipher cipher = getCipher();
-		IvParameterSpec ivSpec = new IvParameterSpec(IV_BYTES);
 
 		if (cipher != null && mKey != null) {
 			try {
-//				cipher.init(Cipher.DECRYPT_MODE, mKey);
-				cipher.init(Cipher.DECRYPT_MODE, mKey, ivSpec);
+				Log.d(TAG, String.format("Using the key size:%d, key:%s", mKey.getEncoded().length, 
+						HexStringHelper.hexEncode(mKey.getEncoded())));
+				cipher.init(Cipher.DECRYPT_MODE, mKey, IV_PARAMS_SPEC);
 				byte[] outputBytes = cipher.doFinal(inputBytes);
 				return outputBytes;
 			} catch (InvalidKeyException e) {
@@ -143,10 +150,15 @@ public class CryptoUtils {
 	 * @param encryptedInputText
 	 * @return
 	 */
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public String decryptData(String encryptedInputText) {
 		if (!TextUtils.isEmpty(encryptedInputText)) {
-			byte[] decryptedData = decryptData(encryptedInputText.getBytes());
-			return new String(decryptedData);
+			byte[] decryptedData = decryptData(encryptedInputText.getBytes(DEFAULT_CHARSET));
+			if (decryptedData != null) {
+				return new String(decryptedData);
+			}
+		} else {
+			Log.e(TAG,"Cannot decrypt an empty encryptedInputText!");
 		}
 		return null;
 	}
@@ -157,20 +169,20 @@ public class CryptoUtils {
 	 * @return
 	 */
 	private Cipher getCipher() {
-		Cipher cipher = null;
-		try {
-			cipher = Cipher.getInstance(CIPHER_ALGO, CIPHER_PROVIDER);
-		} catch (NoSuchAlgorithmException e) {
-			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
-			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
-			e.printStackTrace();
-		} catch (NoSuchProviderException e) {
-			Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
-			e.printStackTrace();
+//		final String CIPHER_PROVIDER = "BC";
+		if (sCipher == null) {
+			try {
+//				sCipher = Cipher.getInstance(CIPHER_ALGO, CIPHER_PROVIDER);
+				sCipher = Cipher.getInstance(CIPHER_ALGO);
+			} catch (NoSuchAlgorithmException e) {
+				Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				Log.d(TAG, "Impossible to get Cipher instancem" + e.getClass().getSimpleName());
+				e.printStackTrace();
+			} 
 		}
-		return cipher;
+		return sCipher;
 	}
 
 	/**
@@ -194,7 +206,6 @@ public class CryptoUtils {
 			Log.d(TAG, "Impossible to create encryption key" + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
-		Log.d(TAG, String.format("Using the key:%s", HexStringHelper.hexEncode(key.getEncoded())));
 		return key;
 	}
 
@@ -235,6 +246,6 @@ public class CryptoUtils {
 	 * @return
 	 */
 	public String getCipherAlgo() {
-		return mCipherAlgo;
+		return CIPHER_ALGO;
 	}
 }

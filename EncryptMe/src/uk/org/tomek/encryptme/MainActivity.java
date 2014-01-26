@@ -1,6 +1,7 @@
 package uk.org.tomek.encryptme;
 
 import uk.org.tomek.encryptme.crypto.CryptoUtils;
+import uk.org.tomek.encryptme.helpers.HexStringHelper;
 import uk.org.tomek.encryptme.presenters.MainActivityPresenter;
 import uk.org.tomek.encryptme.views.MainScreenView;
 import android.app.Activity;
@@ -38,6 +39,9 @@ public final class MainActivity extends Activity implements MainScreenView{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		// create crypto utils instance
+		final CryptoUtils cryptoUtils = CryptoUtils.newInstance();
+		
 		//get views 
 		mEncryptionTypeTv = (TextView) findViewById(R.id.encryption_type);
 		mKeyValueTv = (TextView) findViewById(R.id.key_value);
@@ -54,16 +58,15 @@ public final class MainActivity extends Activity implements MainScreenView{
 			@Override
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				boolean handeled = false;
-				Log.d(TAG, String.format("onEditorAction called, actionId:%d, event:%d", actionId, 
-						event.getAction()));
 				
 				if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.KEYCODE_UNKNOWN) {
 					String inputText = mInputTextFiled.getText().toString();
 					Log.d(TAG, String.format("Input data:%s", inputText));
-					CryptoUtils cryptoUtils = CryptoUtils.newInstance();
+					
 					String encryptedData = cryptoUtils.encryptData(inputText);
-					Log.d(TAG, String.format("Output data:%s", encryptedData));
-					mOutputTextField.setText(encryptedData);
+					String hexEncodedOutput = HexStringHelper.hexEncode(encryptedData.getBytes());
+					Log.d(TAG, String.format("Output data:%s", hexEncodedOutput));
+					mOutputTextField.setText(hexEncodedOutput);
 					handeled = true;
 				}
 				return handeled;
