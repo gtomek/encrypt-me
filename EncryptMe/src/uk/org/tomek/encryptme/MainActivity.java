@@ -6,11 +6,13 @@ import uk.org.tomek.encryptme.helpers.HexStringHelper;
 import uk.org.tomek.encryptme.presenters.MainActivityPresenter;
 import uk.org.tomek.encryptme.views.MainScreenView;
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -58,8 +60,11 @@ public final class MainActivity extends Activity implements MainScreenView{
 			@Override
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				boolean handeled = false;
+				Log.d(TAG, String.format("setOnEditorActionListener trigered with actionId:%d, event_action:%s", 
+						actionId, event));
 				
-				if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.KEYCODE_UNKNOWN) {
+				if (actionId == EditorInfo.IME_ACTION_DONE ||
+						actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.KEYCODE_UNKNOWN) {
 					String inputText = mInputTextFiled.getText().toString();
 					Log.d(TAG, String.format("Input data:%s", inputText));
 					
@@ -67,6 +72,13 @@ public final class MainActivity extends Activity implements MainScreenView{
 					String hexEncodedOutput = HexStringHelper.hexEncode(encryptedData);
 					Log.d(TAG, String.format("Output data:%s", hexEncodedOutput));
 					mOutputTextField.setText(hexEncodedOutput);
+					
+					// hide keyboard
+					InputMethodManager inputManager = 
+					        (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); 
+					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+					        InputMethodManager.HIDE_NOT_ALWAYS); 
+					
 					handeled = true;
 				}
 				return handeled;
