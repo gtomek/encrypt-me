@@ -8,5 +8,6 @@
     <string name="input_text_title">Input:</string>
     <string name="output_text_title">Output:</string>
     <string name="save_key">Save current key</string>
+    <string name="create_new_key">Create new key</string>
 
 </resources>

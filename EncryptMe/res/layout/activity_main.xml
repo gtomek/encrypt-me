@@ -55,5 +55,12 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/output_text"
         android:text="@string/save_key" />
+    
+    <Button
+        android:id="@+id/create_new_key_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/save_key_button"
+        android:text="@string/create_new_key" />
 
 </RelativeLayout>

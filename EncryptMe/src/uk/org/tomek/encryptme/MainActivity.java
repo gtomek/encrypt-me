@@ -33,6 +33,7 @@ public final class MainActivity extends Activity implements MainScreenView{
 	private EditText mInputTextFiled;
 	private TextView mOutputTextField;
 	private Button mSaveKeyButton;
+	private Button mCreateNewKeyButton;
 	
 	public MainActivity() {
 	}
@@ -96,6 +97,17 @@ public final class MainActivity extends Activity implements MainScreenView{
 			@Override
 			public void onClick(View v) {
 				mKeyFactory.saveKey();
+			}
+		});
+		
+		mCreateNewKeyButton = (Button) findViewById(R.id.create_new_key_button);
+		mCreateNewKeyButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mKeyFactory.generateNewKeyNoPin();
+				// refresh key values on the screen
+				mPresenter.present();
 			}
 		});
 	}

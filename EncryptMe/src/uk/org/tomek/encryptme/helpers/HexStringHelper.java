@@ -26,7 +26,9 @@ public final class HexStringHelper {
 
 			output.append("0x");
 			output.append(Integer.toHexString(next));
-			output.append(", ");
+			if (i != inputLength - 1) {
+				output.append(", ");
+			}
 		}
 
 		return output.toString();

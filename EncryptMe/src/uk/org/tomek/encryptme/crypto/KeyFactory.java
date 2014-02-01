@@ -34,8 +34,8 @@ public final class KeyFactory {
 	private static final String AES = "AES";
 	private static final String KEY_PREFS = "key_prefs";
 	private static final String ENCRYPTION_KEY = "encryption_key";
-	private final SecretKey mKeyNoPin;
 	private final SharedPreferences mSharedPreferences;
+	private SecretKey mKeyNoPin;
 
 	// private constructor (please use newIntance() instead)
 	private KeyFactory(Context context) {
@@ -47,8 +47,7 @@ public final class KeyFactory {
 		SecretKey savedKey = readSavedKey();
 		if (savedKey == null) {
 			// no saved key available, therefore create a new one
-			mKeyNoPin = generateKey();
-			Log.d(TAG, String.format("Created new key=%s", mKeyNoPin.getEncoded()));
+			generateNewKeyNoPin();
 		} else {
 			mKeyNoPin = savedKey;
 			Log.d(TAG, String.format("Using saved key=%s", mKeyNoPin.getEncoded()));
@@ -177,5 +176,13 @@ public final class KeyFactory {
 							HexStringHelper.hexEncode(secretKeySpec.getEncoded())));
 			return secretKeySpec;
 		}
+	}
+
+	/**
+	 * Creates new key without PIN, and stores it in a field.
+	 */
+	public void generateNewKeyNoPin() {
+		mKeyNoPin = generateKey();
+		Log.d(TAG, String.format("Created new key=%s", HexStringHelper.hexEncode(mKeyNoPin.getEncoded())));
 	}
 }
