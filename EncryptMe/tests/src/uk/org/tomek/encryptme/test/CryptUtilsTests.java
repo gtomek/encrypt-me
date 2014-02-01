@@ -18,7 +18,7 @@ public class CryptUtilsTests extends AndroidTestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		mKeyFactory = KeyFactory.newInstance();
+		mKeyFactory = KeyFactory.newInstance(getContext());
 	}
 
 	public void testEncryptDataBytes() {
@@ -30,12 +30,12 @@ public class CryptUtilsTests extends AndroidTestCase {
 	}
 
 	public void testEncryptDataStrings() throws UnsupportedEncodingException {
-		String inputString = new String(INPUT_DATA_BYTES, CryptoUtils.UNICODE_FORMAT);
+		String inputString = new String(INPUT_DATA_BYTES, CryptoUtils.DEFAULT_CHARSET);
 		CryptoUtils cryptoUtils = CryptoUtils.newInstance(mKeyFactory);
 		byte[] encryptedData = cryptoUtils.encryptData(inputString);
 		Log.d(TAG, String.format("Encrypted data:%s", encryptedData));
 		byte[] decryptedData = cryptoUtils.decryptData(encryptedData);
-		assertTrue(Arrays.equals(inputString.getBytes(CryptoUtils.UNICODE_FORMAT), decryptedData));
+		assertTrue(Arrays.equals(inputString.getBytes(CryptoUtils.DEFAULT_CHARSET), decryptedData));
 	}
 
 }

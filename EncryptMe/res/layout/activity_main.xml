@@ -49,4 +49,11 @@
         android:layout_alignTop="@id/output_text_title"
         android:layout_toRightOf="@id/output_text_title" />
 
+    <Button
+        android:id="@+id/save_key_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/output_text"
+        android:text="@string/save_key" />
+
 </RelativeLayout>

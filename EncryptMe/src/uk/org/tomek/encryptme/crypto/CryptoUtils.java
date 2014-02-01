@@ -26,8 +26,8 @@ import android.util.Log;
  * 
  */
 public class CryptoUtils {
-	public static final String UNICODE_FORMAT = "UTF-8";
-	public static final Charset DEFAULT_CHARSET = Charset.forName(UNICODE_FORMAT);
+	public static final String LATIN_FORMAT = "Latin-1";
+	public static final Charset DEFAULT_CHARSET = Charset.forName(LATIN_FORMAT);
 
 	private static final String TAG = CryptoUtils.class.getSimpleName();
 //	private static final String CIPHER_ALGO = "AES/CBC/PKCS5Padding";

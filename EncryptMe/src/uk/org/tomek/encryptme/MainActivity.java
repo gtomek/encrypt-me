@@ -11,8 +11,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -23,23 +26,24 @@ import android.widget.TextView.OnEditorActionListener;
 public final class MainActivity extends Activity implements MainScreenView{
 	
 	private static final String TAG = "MainActivity";
-	private final MainActivityPresenter mPresenter;
-	private final KeyFactory mKeyFactory;
+	private MainActivityPresenter mPresenter;
+	private KeyFactory mKeyFactory;
 	private TextView mEncryptionTypeTv;
 	private TextView mKeyValueTv;
 	private EditText mInputTextFiled;
 	private TextView mOutputTextField;
+	private Button mSaveKeyButton;
 	
 	public MainActivity() {
-		mKeyFactory = KeyFactory.newInstance();
-		mPresenter = MainActivityPresenter.newInstance(CryptoUtils.newInstance(mKeyFactory));
-//		this(MainActivityPresenter.newInstance(CryptoUtils.newInstance(mKeyFactory)));
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		mKeyFactory = KeyFactory.newInstance(this);
+		mPresenter = MainActivityPresenter.newInstance(CryptoUtils.newInstance(mKeyFactory));
 		
 		// create crypto utils instance
 		final CryptoUtils cryptoUtils = CryptoUtils.newInstance(mKeyFactory);
@@ -84,6 +88,16 @@ public final class MainActivity extends Activity implements MainScreenView{
 				return handeled;
 			}
 		});
+		
+		// add save key button handling
+		mSaveKeyButton = (Button) findViewById(R.id.save_key_button);
+		mSaveKeyButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mKeyFactory.saveKey();
+			}
+		});
 	}
 
 	@Override
@@ -95,7 +109,6 @@ public final class MainActivity extends Activity implements MainScreenView{
 
 	@Override
 	public void showEncryptionType(String type) {
-		// TODO Auto-generated method stub
 		mEncryptionTypeTv.setText(type);
 	}
 
