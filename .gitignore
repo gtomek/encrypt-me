@@ -2,3 +2,6 @@ bin/
 EncryptMe/bin/
 *.class
 R.java
+.idea
+out
+*.iml
