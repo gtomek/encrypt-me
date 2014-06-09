@@ -1,6 +1,7 @@
 package uk.org.tomek.encryptme.crypto;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
@@ -174,6 +175,14 @@ public class CryptoUtils {
      */
     public SecretKey getKey() {
         return mKeyFactory.getKeyNoPin();
+    }
+
+    /**
+     * Returns crypto key generated with a method using PIN and seed, where the package name is used
+     * as a PIN and the device id as seed.
+     */
+    public SecretKey getKeyWithPackageAsPin(final Context context) {
+        return KeyFactory.generateKeyFromPackage(context);
     }
 
     /**
