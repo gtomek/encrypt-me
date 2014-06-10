@@ -39,10 +39,10 @@ public final class KeyFactory {
     private static final String STANDARD_KEY_ALG_BEFORE_KITCAT = "PBKDF2WithHmacSHA1";
     private static final String BACKUP_KEY_ALG = "PBEWithMD5AndDES";
     private final SharedPreferences mSharedPreferences;
-    private SecretKey mKeyNoPin;
+    private SecretKey mKey;
 
-    // private constructor (please use newIntance() instead)
-    private KeyFactory(Context context) {
+    // private constructor (please use newInstance() instead)
+    private KeyFactory(final Context context) {
         if (context == null) {
             throw new IllegalArgumentException();
         }
@@ -51,10 +51,10 @@ public final class KeyFactory {
         SecretKey savedKey = readSavedKey();
         if (savedKey == null) {
             // no saved key available, therefore create a new one
-            generateNewKeyNoPin();
+//            mKey = generateNewKeyNoPin();
         } else {
-            mKeyNoPin = savedKey;
-            Log.d(TAG, String.format("Using saved key=%s", mKeyNoPin.getEncoded()));
+            mKey = savedKey;
+            Log.d(TAG, String.format("Using saved key:%s", mKey.getEncoded()));
         }
     }
 
@@ -72,8 +72,8 @@ public final class KeyFactory {
      *
      * @return default secret key
      */
-    public SecretKey getKeyNoPin() {
-        return mKeyNoPin;
+    public SecretKey getKey() {
+        return mKey;
     }
 
     /**
@@ -81,7 +81,7 @@ public final class KeyFactory {
      *
      * @return a key or null
      */
-    public static SecretKey generateKey() {
+    public SecretKey generateKey() {
         // Generate a 128-bit key
         int outputKeyLength = 128;
 
@@ -115,13 +115,12 @@ public final class KeyFactory {
     /**
      * Generates secret code with PIN code used as an input parameter.
      *
-     * @param passphraseOrPin
-     * @param salt
-     * @return
+     * @param passphraseOrPin initialisation password/PIN
+     * @param salt initialisation salt
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt)
+    public SecretKey generateKey(char[] passphraseOrPin, byte[] salt)
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         // Number of PBKDF2 hardening rounds to use. Larger values increase
         // computation time. You should select a value that causes computation
@@ -151,9 +150,10 @@ public final class KeyFactory {
      * Store current key in persistent storage.
      */
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-    public void saveKey() {
+    public void saveKey(final SecretKey key) {
+        mKey = key;
         Editor preferencesEditor = mSharedPreferences.edit();
-        byte[] encodedKeyBytes = mKeyNoPin.getEncoded();
+        byte[] encodedKeyBytes = key.getEncoded();
         Log.d(TAG,
                 String.format("Saving binary key:%s", HexStringHelper.hexEncode(encodedKeyBytes)));
         preferencesEditor.putString(ENCRYPTION_KEY, new String(encodedKeyBytes,
@@ -184,10 +184,11 @@ public final class KeyFactory {
     /**
      * Creates new key without PIN, and stores it in a field.
      */
-    public void generateNewKeyNoPin() {
-        mKeyNoPin = generateKey();
+    public SecretKey generateNewKeyNoPin() {
+        SecretKey keyNoPin = generateKey();
         Log.d(TAG, String.format("Created new key=%s",
-                HexStringHelper.hexEncode(mKeyNoPin.getEncoded())));
+                HexStringHelper.hexEncode(keyNoPin.getEncoded())));
+        return keyNoPin;
     }
 
     /**
@@ -195,7 +196,7 @@ public final class KeyFactory {
      *
      * @param context app context
      */
-    public static SecretKey generateKeyFromPackage(final Context context) {
+    public SecretKey generateKeyFromPackage(final Context context) {
         char[] packageChars = context.getPackageName().toCharArray();
         byte[] serialNumber = getDeviceSerial(context).getBytes();
         try {

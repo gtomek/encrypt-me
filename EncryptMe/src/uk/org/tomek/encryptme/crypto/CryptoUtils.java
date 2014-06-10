@@ -69,7 +69,7 @@ public class CryptoUtils {
         if (cipher != null && mKeyFactory != null) {
 
             try {
-                SecretKey keyNoPin = mKeyFactory.getKeyNoPin();
+                SecretKey keyNoPin = mKeyFactory.getKey();
                 Log.d(TAG,
                         String.format("Using the key size:%d, key:%s", keyNoPin.getEncoded().length,
                                 HexStringHelper.hexEncode(keyNoPin.getEncoded()))
@@ -123,7 +123,7 @@ public class CryptoUtils {
 
         if (cipher != null && mKeyFactory != null) {
             try {
-                SecretKey keyNoPin = mKeyFactory.getKeyNoPin();
+                SecretKey keyNoPin = mKeyFactory.getKey();
                 Log.d(TAG,
                         String.format("Using the key size:%d, key:%s", keyNoPin.getEncoded().length,
                                 HexStringHelper.hexEncode(keyNoPin.getEncoded()))
@@ -174,15 +174,7 @@ public class CryptoUtils {
      * Returns crypto key.
      */
     public SecretKey getKey() {
-        return mKeyFactory.getKeyNoPin();
-    }
-
-    /**
-     * Returns crypto key generated with a method using PIN and seed, where the package name is used
-     * as a PIN and the device id as seed.
-     */
-    public SecretKey getKeyWithPackageAsPin(final Context context) {
-        return KeyFactory.generateKeyFromPackage(context);
+        return mKeyFactory.getKey();
     }
 
     /**

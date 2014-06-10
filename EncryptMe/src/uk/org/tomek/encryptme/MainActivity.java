@@ -15,6 +15,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
+import javax.crypto.SecretKey;
+
 import uk.org.tomek.encryptme.crypto.CryptoUtils;
 import uk.org.tomek.encryptme.crypto.KeyFactory;
 import uk.org.tomek.encryptme.helpers.HexStringHelper;
@@ -33,8 +35,6 @@ public final class MainActivity extends Activity implements MainScreenView {
     private TextView mKeyValueTv;
     private EditText mInputTextFiled;
     private TextView mOutputTextField;
-    private Button mSaveKeyButton;
-    private Button mCreateNewKeyButton;
 
     public MainActivity() {
     }
@@ -56,7 +56,6 @@ public final class MainActivity extends Activity implements MainScreenView {
 
         // set view in Presenter
         mPresenter.setView(this);
-        mPresenter.present();
 
         // add action to input text field (pressing Enter should trigger encryption)
         mOutputTextField = (TextView) findViewById(R.id.output_text);
@@ -92,26 +91,21 @@ public final class MainActivity extends Activity implements MainScreenView {
             }
         });
 
-        // add save key button handling
-        mSaveKeyButton = (Button) findViewById(R.id.save_key_button);
-        mSaveKeyButton.setOnClickListener(new OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                mKeyFactory.saveKey();
-            }
-        });
-
-        mCreateNewKeyButton = (Button) findViewById(R.id.create_new_key_button);
+        Button mCreateNewKeyButton = (Button) findViewById(R.id.create_new_key_button);
         mCreateNewKeyButton.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                mKeyFactory.generateNewKeyNoPin();
+                SecretKey secretKey = mKeyFactory.generateKeyFromPackage(getApplicationContext());
+                // save the key
+                mKeyFactory.saveKey(secretKey);
                 // refresh key values on the screen
                 mPresenter.present();
             }
         });
+
+        mPresenter.present();
     }
 
     @Override
@@ -128,6 +122,7 @@ public final class MainActivity extends Activity implements MainScreenView {
 
     @Override
     public void showKeyContent(String key) {
+        Log.d(TAG, "showKeyContent called");
         mKeyValueTv.setText(key);
     }
 

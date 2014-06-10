@@ -33,7 +33,9 @@ public final class MainActivityPresenter {
 	 * Displays the data in the view.
 	 */
 	public void present() {
-		mMainViewView.showKeyContent(HexStringHelper.hexEncode(mCryptoUtils.getKey().getEncoded()));
+        if (mCryptoUtils.getKey() != null) {
+            mMainViewView.showKeyContent(HexStringHelper.hexEncode(mCryptoUtils.getKey().getEncoded()));
+        }
 		mMainViewView.showEncryptionType(mCryptoUtils.getCipherAlgo());
 	}
 
